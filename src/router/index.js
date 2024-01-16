@@ -37,7 +37,7 @@ router.beforeEach((to, from, next) => {
   console.log(user);
   console.log('是否登录', user,cookie);
   // 用户未登陆只允许访问登录页和注册页
-  if (!user && (to.name !== "Login"&&to.name !== "Admin")) {
+  if (!user && (to.name !== "Login")) {
     console.log('没有登录自动跳转到登录页面');
     // 未登录自动跳转至登录页
     next({ name: 'Login' });

@@ -4,7 +4,7 @@ import router from '@/router';
 let loadingInstance; // 用于保存Loading实例
 const instance = axios.create({
   // TODO 1. 基础地址，超时时间
-  baseURL:process.env.VUE_APP_BASE_API,
+  baseURL: process.env.VUE_APP_BASE_API,
   timeout: 3000,
   withCredentials: true,
   headers: {
@@ -27,12 +27,14 @@ instance.interceptors.response.use(
   (res) => {
     if (res.status === 200) {
       loadingInstance.close(); // 关闭加载动画
-      if (res.data.status === 1113) {
-        // router.push('/login');
-      } else {
-        console.log('请求成功response', res.data);
-        return res;
-      }
+      if (res.data.status === 1113||res.data.status === 1114) {
+        Vue.prototype.$message.error('用户无权限');
+        this.$store.commit('logout')
+        location.reload(); // 刷新页面
+        return
+      } 
+      console.log('请求成功response', res.data);
+      return res;
     }
     return Promise.reject(res.data);
   },

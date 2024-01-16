@@ -17,14 +17,9 @@ export default new Vuex.Store({
       state.isLoggedIn = true;
       localStorage.setItem(USER_KEY, JSON.stringify(user));
     },
-    setfps(state, param) {
-      console.log('00000000000000');
-      console.log('提交修改fps:',param.fps,'pi:',param.pixel);
-      state.user.result.fps = param.fps;
-      state.user.result.pixel=param.pixel
-      localStorage.setItem(USER_KEY, JSON.stringify(state.user));
-    },
+    // },
     logout(state) {
+      console.log('调用了退出登录');
       state.user = null;
       state.isLoggedIn = false;
       localStorage.removeItem(USER_KEY);

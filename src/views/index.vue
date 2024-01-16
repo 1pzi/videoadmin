@@ -85,7 +85,7 @@
                 </el-table-column>
                 <el-table-column prop="name" label="账号" width="100" header-align="center"
                   align="center"></el-table-column>
-                <el-table-column prop="pwd" label="密码" header-align="center" align="center">
+                <el-table-column prop="pwd" label="密码" width="60" header-align="center" align="center">
                   <template slot-scope="scope">
                     <i class="el-icon-lock"></i>
                   </template>
@@ -95,14 +95,37 @@
                     <span>{{ scope.row.status === 1 ? '正常' : '冻结' }}</span>
                   </template>
                 </el-table-column>
-                <el-table-column prop="time" label="添加时间" header-align="center" align="center"></el-table-column>
-                <el-table-column prop="update" label="修改时间" header-align="center" align="center"></el-table-column>
-                <el-table-column prop="fps" label="fps" width="60" header-align="center" align="center"></el-table-column>
-                <el-table-column prop="pixel" label="pixel" width="60" header-align="center"
-                  align="center"></el-table-column>
+                <el-table-column prop="time" label="添加时间" header-align="center" align="center">
+                  <template slot-scope="scope">
+                    {{ formatTimestamp(scope.row.time) }}
+                  </template>
+                </el-table-column>
+                <el-table-column prop="update" label="修改时间" header-align="center" align="center">
+                  <template slot-scope="scope">
+                    {{ formatTimestamp(scope.row.update) }}
+                  </template>
+                </el-table-column>
+                <el-table-column label="帧数" width="60" header-align="center" align="center">
+                  <template slot-scope="scope">
+                    <template v-if="scope.row.config.fps">
+                      <span>{{ scope.row.config.fps }}</span>
+                    </template>
+                    <template v-else>
+                      <i class="el-icon-loading"></i>
+                    </template>
+                  </template>
+                </el-table-column>
+                <el-table-column label="身份" width="100" header-align="center" align="center">
+                  <template slot-scope="scope">
+                    <span :style="{ color: scope.row.pixel === 1 ? '#606266' : '#ff0000' }">{{ scope.row.pixel === 1 ?
+                      '普通用户' : 'VIP用户' }}</span>
+                  </template>
+                </el-table-column>
                 <el-table-column label="操作" width="300" header-align="center" align="center">
                   <template slot-scope="scope">
-                    <el-button type="success" size="mini" @click="upgradeUser(scope.row)">升级</el-button>
+                    <el-button type="success" size="mini" @click="upgradeUser(scope.row)"
+                      v-show="scope.row.pixel === 1">升级</el-button>
+                    <el-button type="success" size="mini" disabled v-show="scope.row.pixel === 2">升级</el-button>
                     <el-button type="danger" size="mini" v-show="scope.row.status === 1"
                       @click="banUser(scope.row)">封号</el-button>
                     <el-button type="success" size="mini" v-show="scope.row.status === 2"
@@ -202,6 +225,7 @@ export default {
     // this.getuserlist()
   },
   computed: {
+    // 计算用户列表信息
     indexedUserList() {
       return this.userList.map((item, index) => {
         return {
@@ -209,19 +233,37 @@ export default {
           index: (this.currentPage - 1) * this.pageSize + index + 1
         };
       });
-    }
+    },
+    // 计算属性来格式化时间戳
+    formatTimestamp() {
+      return (timestamp) => {
+        const date = new Date(timestamp);
+        const year = date.getFullYear();
+        const month = this.padZero(date.getMonth() + 1); // 调用padZero方法补零
+        const day = this.padZero(date.getDate());
+        const hours = this.padZero(date.getHours());
+        const minutes = this.padZero(date.getMinutes());
+        const seconds = this.padZero(date.getSeconds());
+        return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+      };
   },
+},
   methods: {
+    // 辅助方法，用于在个位数前添加零
+    padZero(num) {
+      return num < 10 ? `0${num}` : num;
+    },
     // 监听比例
     bili() {
       this.updateHeight()
       this.updateOpHeight()
     },
-    // 监听宽
+    // 监听采样宽
     updateHeight() {
       const [widthRatio, heightRatio] = this.aspectRatio.split(':').map(Number);
       this.options.height = Math.round((this.options.width / widthRatio) * heightRatio);
     },
+    // 监听推流宽度
     updateOpHeight() {
       const [widthRatio, heightRatio] = this.aspectRatio.split(':').map(Number);
       let outputWidth = parseInt(this.options.output_w, 10);
@@ -235,21 +277,25 @@ export default {
         this.options.output_w = '1024'
       }
     },
+    // 监听最大码率
     handleMaxChange(value) {
       if (value === '') {
         this.options.max = '0';
       }
     },
+    // 监听最小码率
     handleMinChange(value) {
       if (value === '') {
         this.options.min = '0';
       }
     },
+    // 监听当前码率
     handleCurChange(value) {
       if (value === '') {
         this.options.cur = '0';
       }
     },
+    // 监听帧率
     validateFps() {
       const fps = parseInt(this.options.fps, 10);
       if (isNaN(fps) || fps < 15 || fps > 40) {
@@ -261,6 +307,7 @@ export default {
         this.options.fps = '30'; // 或者将其设置为原始的值
       }
     },
+    // 获取用户列表
     getuserlist() {
       console.log('当前页数', this.currentPage, '一页一共', this.pageSize);
       const Key = 'MNaa59WfNLaoTiLM+aERckO5ksE4-0xw'
@@ -281,8 +328,19 @@ export default {
         })
         .catch(error => {
           console.error('错误:', error);
+          if (error.status === 1113) {
+            this.$message({
+              showClose: true,
+              message: '登录账号失效，请重新登录',
+              type: 'error',
+              center: true
+            });
+            localStorage.clear(); // 清除本地缓存
+            location.reload(); // 刷新页面
+          }
         });
     },
+    // 添加用户的逻辑
     addUser() {
       if (this.validatePassword(this.form.password)) {
         this.$confirm(`确定添加用户：${this.form.username}？是否继续?`, '提示', {
@@ -295,8 +353,8 @@ export default {
             const from = {
               name: this.form.username,
               pwd: this.form.password,
-              pixel: 1,//默认为1
-              fps: 2,//默认为2
+              pixel: 1,//默认为普通用户
+              fps: 2,//没有用
               config: JSON.stringify(this.options)
             };
             const Key = 'MNaa59WfNLaoTiLM+aERckO5ksE4-0xw'
@@ -341,6 +399,7 @@ export default {
         });
       }
     },
+    // 退出登录
     tuichu() {
       this.$confirm('确定退出登录？是否继续?', '提示', {
         confirmButtonText: '确定',
@@ -348,8 +407,7 @@ export default {
         type: 'warning',
         center: true
       }).then(() => {
-        localStorage.clear(); // 清除本地缓存
-        location.reload(); // 刷新页面
+        this.$store.commit('logout')
       })
         .catch(() => { });
     },
@@ -359,10 +417,12 @@ export default {
       const regex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[^]{8,16}$/;
       return regex.test(password);
     },
+    // 切换标签
     handleMenuSelect(index) {
       // 切换显示内容
       this.activeTab = index;
     },
+    // 分页
     handleCurrentChange(val) {
       // 处理分页变化
       this.currentPage = val;
@@ -420,9 +480,51 @@ export default {
         .catch(() => { });
 
     },
+    // 升级用户逻辑
     upgradeUser(row) {
-      // 升级用户逻辑
+      console.log(row);
+      this.$confirm(`确定升级${row.name}？是否继续?`, '提示', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning',
+        center: true
+      }).then(() => {
+        const Key = 'MNaa59WfNLaoTiLM+aERckO5ksE4-0xw'
+        const data = {
+          id: row.id,
+          status: 2
+        }
+        // 使用AES加密用户信息
+        const AESjiami = GibberishAES.aesEncrypt(JSON.stringify(data), Key);
+        var AESzy = encodeURIComponent(AESjiami); // 对字符串进行转义
+        console.log('要修改的数据：', data);
+        ModifyClient(AESzy)
+          .then(res => {
+            console.log('修改成功返回的数据', res.data);
+            if (res.data.status === 0) {
+              this.$message({
+                type: 'success',
+                center: true,
+                message: `${row.name}身份升级成功`
+              });
+              this.getuserlist()
+
+            } else {
+              this.$message({
+                showClose: true,
+                message: res.data.message,
+                type: 'error',
+                center: true
+              });
+            }
+          })
+          .catch(error => {
+            console.error('错误:', error);
+          });
+      })
+        .catch(() => { });
     },
+    // 点击修改参数
     Modifyparameter(row) {
       this.userid = row.id
       for (let user of this.userList) {
