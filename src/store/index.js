@@ -1,17 +1,96 @@
-import Vue from 'vue'
-import Vuex from 'vuex'
+import Vue from 'vue';
+import Vuex from 'vuex';
+import { Login } from '@/api/index';
+// 导入AES加密库（crypto-js）
+// import GibberishAES from 'gibberish-aes/src/gibberish-aes';
 
-Vue.use(Vuex)
-
+Vue.use(Vuex);
+const USER_KEY = 'user';
 export default new Vuex.Store({
   state: {
-  },
-  getters: {
+    user: null, // 用户信息
+    isLoggedIn: false, // 登录状态
   },
   mutations: {
+    setUser(state, user) {
+      state.user = user;
+      state.isLoggedIn = true;
+      localStorage.setItem(USER_KEY, JSON.stringify(user));
+    },
+    setfps(state, param) {
+      console.log('00000000000000');
+      console.log('提交修改fps:',param.fps,'pi:',param.pixel);
+      state.user.result.fps = param.fps;
+      state.user.result.pixel=param.pixel
+      localStorage.setItem(USER_KEY, JSON.stringify(state.user));
+    },
+    logout(state) {
+      state.user = null;
+      state.isLoggedIn = false;
+      localStorage.removeItem(USER_KEY);
+    },
+    initializeStore(state) {
+      console.log('执行 initializeStore');
+      const user = localStorage.getItem(USER_KEY);
+      console.log('从本地存储中读取用户信息：', user);
+      if (user) {
+        state.user = JSON.parse(user);
+        state.isLoggedIn = true;
+        console.log('用户已登录');
+      } else {
+        console.log('用户未登录');
+      }
+    }
+
   },
   actions: {
+    async login({ commit }, { username, password }) {
+      const userinfo = {
+        name: username,
+        pwd: password,
+        client: 1
+      };
+      const Key = 'MNaa59WfNLaoTiLM+aERckO5ksE4-0xw'
+      // 使用AES加密用户信息
+      const encryptedData = GibberishAES.aesEncrypt(JSON.stringify(userinfo), Key);
+      const decryptedText = GibberishAES.aesDecrypt(encryptedData, Key);
+      console.log('加密AES', encryptedData);
+      var escapedEncryptedString = encodeURIComponent(encryptedData); // 对字符串进行转义
+      console.log('转义后', JSON.stringify(escapedEncryptedString));
+      console.log('解码后', decryptedText);
+      try {
+        // 调用后端登录接口
+        const response = await Login(escapedEncryptedString);
+        console.log('登录成功后端返回数据response.data.data', response.data.data);
+        const decodedURL = decodeURIComponent(response.data.data.result)
+        const decryptedText = GibberishAES.aesDecrypt(decodedURL, Key)
+        // 将解密后的数据对象转换为JSON格式
+        const jsonData = JSON.parse(decryptedText)
+        console.log('登录成功数据jsonData', jsonData)
+        if (response.data.status === 0) {
+          const user = {
+            username: username,
+            result: jsonData
+          };
+          commit('setUser', user);
+          document.cookie = `cookie=${response.data.data.result}`;
+          return true; // 登录成功
+        } else {
+          return false; // 登录失败
+        }
+      } catch (error) {
+        console.error('登录失败', error);
+        return false; // 登录失败
+      }
+    },
+    logout({ commit }) {
+      commit('logout');
+    },
   },
-  modules: {
-  }
-})
+  getters: {
+    // 获取数据
+    getUser(state) {
+      return state.user.username
+    }
+  },
+});
