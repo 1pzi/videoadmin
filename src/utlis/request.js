@@ -28,7 +28,7 @@ instance.interceptors.response.use(
   (res) => {
     if (res.status === 200) {
       loadingInstance.close(); // 关闭加载动画
-      if (res.data.status === 1113 || res.data.status === 1114) {
+      if (res.data.status === 1113) {
         console.log(store);
         Message.error(res.data.message || '账号过期或者权限不够...')
         store.commit('logout')

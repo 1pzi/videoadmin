@@ -92,23 +92,24 @@
                 </el-table-column>
                 <el-table-column label="状态" width="80" header-align="center" align="center">
                   <template slot-scope="scope">
-                    <span :style="{ color: scope.row.status === 1 ? '#08ae08' : '#ff0000' }">{{ scope.row.status === 1 ? '正常' : '冻结' }}</span>
+                    <span :style="{ color: scope.row.status === 1 ? '#08ae08' : '#ff0000' }">{{ scope.row.status === 1 ?
+                      '正常' : '冻结' }}</span>
                   </template>
                 </el-table-column>
-                <el-table-column prop="time" label="添加时间" header-align="center" align="center">
+                <el-table-column prop="time" label="添加时间" width="200" header-align="center" align="center">
                   <template slot-scope="scope">
                     {{ formatTimestamp(scope.row.time) }}
                   </template>
                 </el-table-column>
-                <el-table-column prop="update" label="修改时间" header-align="center" align="center">
+                <el-table-column prop="update" label="修改时间" width="200" header-align="center" align="center">
                   <template slot-scope="scope">
                     {{ formatTimestamp(scope.row.update) }}
                   </template>
                 </el-table-column>
                 <el-table-column label="帧数" width="60" header-align="center" align="center">
                   <template slot-scope="scope">
-                    <template v-if="scope.row.config!==''">
-                      <span>{{ scope.row.config|getfps }}</span>
+                    <template v-if="scope.row.config !== ''">
+                      <span>{{ scope.row.config | getfps }}</span>
                     </template>
                     <template v-else>
                       <i class="el-icon-warning-outline"></i>
@@ -124,18 +125,18 @@
                 <el-table-column label="操作" header-align="center" align="center">
                   <template slot-scope="scope">
                     <el-button type="success" size="mini" @click="upgradeUser(scope.row)"
-                      v-show="scope.row.pixel === 1">升级</el-button>
+                      v-show="scope.row.pixel === 1" style="margin-left: 10px;">升级</el-button>
                     <el-button type="success" size="mini" disabled v-show="scope.row.pixel !== 1">升级</el-button>
                     <el-button type="danger" size="mini" v-show="scope.row.status === 1"
-                      @click="banUser(scope.row)">封号</el-button>
+                      @click="banUser(scope.row)">冻结</el-button>
                     <el-button type="info" size="mini" v-show="scope.row.status === 2"
-                      @click="banUser(scope.row)">解封</el-button>
+                      @click="banUser(scope.row)">解冻</el-button>
                     <el-button type="primary" size="mini" @click="Modifyparameter(scope.row)">修改参数</el-button>
                   </template>
                 </el-table-column>
               </el-table>
               <el-pagination @current-change="handleCurrentChange" :current-page="currentPage"
-                :page-sizes="[10, 20, 30, 40]" :page-size="pageSize" layout="total, sizes, prev, pager, next, jumper"
+                 :page-size="pageSize" layout="total, prev, pager, next, jumper"
                 :total="total"></el-pagination>
             </template>
             <template v-else>
@@ -168,38 +169,38 @@ export default {
         password: ''
       },
       userList: [
-      // {
-      //     id: 11,
-      //     name: "user2",
-      //     pwd: "e10adc3949ba59abbe56e057f20f883e",
-      //     avatar: "",
-      //     status: 1,
-      //     time: 1702652521963,
-      //     update: 1702652521963,
-      //     device: "",
-      //     web_ss: "",
-      //     ios_ss: "",
-      //     ad_ss: "",
-      //     pixel: 23,
-      //     fps: 4,
-      //     config: "{\"width\":\"1024\",\"height\":\"768\",\"output_w\":\"1024\",\"output_h\":\"768\",\"max\":\"0\",\"min\":\"0\",\"cur\":\"0\",\"fps\":\"30\"}"
-      //   },
-      //   {
-      //     id: 10,
-      //     name: "user1",
-      //     pwd: "e10adc3949ba59abbe56e057f20f883e",
-      //     avatar: "",
-      //     status: 1,
-      //     time: 1702652521963,
-      //     update: 1702652521963,
-      //     device: "",
-      //     web_ss: "a943c8488ntcqlrlegg3b6rdt8",
-      //     ios_ss: "6rkdmfcc70lkooperf8e3f8gai",
-      //     ad_ss: "",
-      //     pixel: 4,
-      //     fps: 2,
-      //     config: ""
-      //   },
+        // {
+        //     id: 11,
+        //     name: "user2",
+        //     pwd: "e10adc3949ba59abbe56e057f20f883e",
+        //     avatar: "",
+        //     status: 1,
+        //     time: 1702652521963,
+        //     update: 1702652521963,
+        //     device: "",
+        //     web_ss: "",
+        //     ios_ss: "",
+        //     ad_ss: "",
+        //     pixel: 23,
+        //     fps: 4,
+        //     config: "{\"width\":\"1024\",\"height\":\"768\",\"output_w\":\"1024\",\"output_h\":\"768\",\"max\":\"0\",\"min\":\"0\",\"cur\":\"0\",\"fps\":\"30\"}"
+        //   },
+        //   {
+        //     id: 10,
+        //     name: "user1",
+        //     pwd: "e10adc3949ba59abbe56e057f20f883e",
+        //     avatar: "",
+        //     status: 1,
+        //     time: 1702652521963,
+        //     update: 1702652521963,
+        //     device: "",
+        //     web_ss: "a943c8488ntcqlrlegg3b6rdt8",
+        //     ios_ss: "6rkdmfcc70lkooperf8e3f8gai",
+        //     ad_ss: "",
+        //     pixel: 4,
+        //     fps: 2,
+        //     config: ""
+        //   },
       ],
       currentPage: 1,
       pageSize: 10,
@@ -223,11 +224,10 @@ export default {
     // 进入页面先获取数据默认从第一页每一页获取10条开始
     this.getuserlist()
   },
-  filters:{
-    getfps(val){
-      console.log(val);
-      const config=val===''?'':JSON.parse(val)
-       return config.fps||''
+  filters: {
+    getfps(val) {
+      const config = val === '' ? '' : JSON.parse(val)
+      return config.fps || ''
     }
   },
   computed: {
@@ -320,17 +320,26 @@ export default {
       GetClientlist(this.currentPage, this.pageSize)
         .then(response => {
           console.log('获取用户列表后端返回数据', response);
-          const decodedURL = decodeURIComponent(response.data.data.result)
-          const decryptedText = GibberishAES.aesDecrypt(decodedURL, Key)
-          // 将解密后的数据对象转换为JSON格式
-          const jsondata = JSON.parse(decryptedText)
-          this.userList = jsondata.list
-          this.total = jsondata.count
-          // console.log('jsondata.list.config', jsondata.list.config);
-          // this.options = jsondata.list.config === '' ? this.options : JSON.parse(jsondata.list.config)
-          // console.log('options:', this.options);
-          console.log('拉取所有用户的信息：', this.userList)
-          console.log('jsondata:', jsondata);
+          if (response.data.status === 1114) {
+            this.$store.commit('logout')
+            // 显示退出登录成功的提示消息
+            this.$message({
+              message: '您没有权限',
+              type: 'success'
+            });
+          } else {
+            const decodedURL = decodeURIComponent(response.data.data.result)
+            const decryptedText = GibberishAES.aesDecrypt(decodedURL, Key)
+            // 将解密后的数据对象转换为JSON格式
+            const jsondata = JSON.parse(decryptedText)
+            this.userList = jsondata.list
+            this.total = jsondata.count
+            // console.log('jsondata.list.config', jsondata.list.config);
+            // this.options = jsondata.list.config === '' ? this.options : JSON.parse(jsondata.list.config)
+            // console.log('options:', this.options);
+            console.log('拉取所有用户的信息：', this.userList)
+            console.log('jsondata:', jsondata);
+          }
         })
         .catch(error => {
           console.error('错误:', error);
@@ -624,6 +633,5 @@ export default {
 .content {
   padding: 20px;
 }
-
 </style>
   

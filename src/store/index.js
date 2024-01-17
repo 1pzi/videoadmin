@@ -1,6 +1,7 @@
 import Vue from 'vue';
 import Vuex from 'vuex';
 import { Login } from '@/api/index';
+import router from '@/router';
 // 导入AES加密库（crypto-js）
 // import GibberishAES from 'gibberish-aes/src/gibberish-aes';
 
@@ -23,7 +24,7 @@ export default new Vuex.Store({
       state.user = null;
       state.isLoggedIn = false;
       localStorage.removeItem(USER_KEY);
-      location.reload(); // 刷新页面
+      router.push({ path: "/login" })
     },
     initializeStore(state) {
       console.log('执行 initializeStore');
@@ -57,22 +58,29 @@ export default new Vuex.Store({
       try {
         // 调用后端登录接口
         const response = await Login(escapedEncryptedString);
-        console.log('登录成功后端返回数据response.data.data', response.data.data);
-        const decodedURL = decodeURIComponent(response.data.data.result)
-        const decryptedText = GibberishAES.aesDecrypt(decodedURL, Key)
-        // 将解密后的数据对象转换为JSON格式
-        const jsonData = JSON.parse(decryptedText)
-        console.log('登录成功数据jsonData', jsonData)
+        console.log('登录成功后端返回数据response', response);
         if (response.data.status === 0) {
+          const decodedURL = decodeURIComponent(response.data.data.result)
+          const decryptedText = GibberishAES.aesDecrypt(decodedURL, Key)
+          // 将解密后的数据对象转换为JSON格式
+          const jsonData = JSON.parse(decryptedText)
+          console.log('登录成功数据jsonData', jsonData)
           const user = {
             username: username,
             result: jsonData
           };
           commit('setUser', user);
           document.cookie = `cookie=${response.data.data.result}`;
-          return true; // 登录成功
-        } else {
-          return false; // 登录失败
+          return { state: 0, msg: '登录成功' };
+        } else if (response.data.status === 1000) {
+          // 参数错误的处理逻辑
+          return { state: 1000, msg: '参数错误' };
+        } else if (response.data.status === 1114) {
+          // 没有权限的处理逻辑
+          return { state: 1114, msg: '账号已被冻结,请联系工作人员！' };
+        } else if (response.data.status === 8119) {
+          // 用户名或密码错误的处理逻辑
+          return { state: 8119, msg: '账号或密码错误' };
         }
       } catch (error) {
         console.error('登录失败', error);
