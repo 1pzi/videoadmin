@@ -23,6 +23,7 @@ export default new Vuex.Store({
       state.user = null;
       state.isLoggedIn = false;
       localStorage.removeItem(USER_KEY);
+      location.reload(); // 刷新页面
     },
     initializeStore(state) {
       console.log('执行 initializeStore');

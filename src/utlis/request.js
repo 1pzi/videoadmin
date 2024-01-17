@@ -1,5 +1,6 @@
 import axios from 'axios'
-import { Loading } from 'element-ui';
+import { Loading,Message } from 'element-ui';
+import store from '@/store';
 import router from '@/router';
 let loadingInstance; // 用于保存Loading实例
 const instance = axios.create({
@@ -27,16 +28,16 @@ instance.interceptors.response.use(
   (res) => {
     if (res.status === 200) {
       loadingInstance.close(); // 关闭加载动画
-      if (res.data.status === 1113||res.data.status === 1114) {
-        Vue.prototype.$message.error('用户无权限');
-        this.$store.commit('logout')
-        location.reload(); // 刷新页面
+      if (res.data.status === 1113 || res.data.status === 1114) {
+        console.log(store);
+        Message.error(res.data.message || '账号过期或者权限不够...')
+        store.commit('logout')
         return
-      } 
-      console.log('请求成功response', res.data);
+      }
+      console.log('正常请求成功response返回res', res.data);
       return res;
     }
-    return Promise.reject(res.data);
+    console.log('请求响应不等于200', res);
   },
   (err) => {
     if (err.code === 'ECONNABORTED' && err.message.includes('timeout')) {
@@ -44,7 +45,7 @@ instance.interceptors.response.use(
       return instance(err.config);
     }
     // 其他错误处理
-    Vue.prototype.$message.error('请求失败');
+    Message.error('请求失败，请稍后重试...')
     loadingInstance.close(); // 关闭加载动画
     return Promise.reject(err);
   }

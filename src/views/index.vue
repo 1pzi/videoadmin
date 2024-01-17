@@ -46,7 +46,7 @@
       </div>
     </el-dialog>
     <el-row>
-      <el-col :span="5">
+      <el-col :span="3" style="height:94vh;">
         <el-menu default-active="userList" class="side-menu" @select="handleMenuSelect">
           <el-menu-item index="addUser">
             <i class="el-icon-plus"></i>
@@ -58,7 +58,7 @@
           </el-menu-item>
         </el-menu>
       </el-col>
-      <el-col :span="18">
+      <el-col :span="21">
         <div class="content">
           <div v-show="activeTab === 'addUser'">
             <h3>添加用户</h3>
@@ -83,16 +83,16 @@
                     <span>{{ scope.row.index }}</span>
                   </template>
                 </el-table-column>
-                <el-table-column prop="name" label="账号" width="100" header-align="center"
+                <el-table-column prop="name" label="账号" width="160" header-align="center"
                   align="center"></el-table-column>
-                <el-table-column prop="pwd" label="密码" width="60" header-align="center" align="center">
+                <el-table-column prop="pwd" label="密码" width="80" header-align="center" align="center">
                   <template slot-scope="scope">
                     <i class="el-icon-lock"></i>
                   </template>
                 </el-table-column>
-                <el-table-column label="状态" width="60" header-align="center" align="center">
+                <el-table-column label="状态" width="80" header-align="center" align="center">
                   <template slot-scope="scope">
-                    <span>{{ scope.row.status === 1 ? '正常' : '冻结' }}</span>
+                    <span :style="{ color: scope.row.status === 1 ? '#08ae08' : '#ff0000' }">{{ scope.row.status === 1 ? '正常' : '冻结' }}</span>
                   </template>
                 </el-table-column>
                 <el-table-column prop="time" label="添加时间" header-align="center" align="center">
@@ -107,11 +107,11 @@
                 </el-table-column>
                 <el-table-column label="帧数" width="60" header-align="center" align="center">
                   <template slot-scope="scope">
-                    <template v-if="scope.row.config.fps">
-                      <span>{{ scope.row.config.fps }}</span>
+                    <template v-if="scope.row.config!==''">
+                      <span>{{ scope.row.config|getfps }}</span>
                     </template>
                     <template v-else>
-                      <i class="el-icon-loading"></i>
+                      <i class="el-icon-warning-outline"></i>
                     </template>
                   </template>
                 </el-table-column>
@@ -121,14 +121,14 @@
                       '普通用户' : 'VIP用户' }}</span>
                   </template>
                 </el-table-column>
-                <el-table-column label="操作" width="300" header-align="center" align="center">
+                <el-table-column label="操作" header-align="center" align="center">
                   <template slot-scope="scope">
                     <el-button type="success" size="mini" @click="upgradeUser(scope.row)"
                       v-show="scope.row.pixel === 1">升级</el-button>
-                    <el-button type="success" size="mini" disabled v-show="scope.row.pixel === 2">升级</el-button>
+                    <el-button type="success" size="mini" disabled v-show="scope.row.pixel !== 1">升级</el-button>
                     <el-button type="danger" size="mini" v-show="scope.row.status === 1"
                       @click="banUser(scope.row)">封号</el-button>
-                    <el-button type="success" size="mini" v-show="scope.row.status === 2"
+                    <el-button type="info" size="mini" v-show="scope.row.status === 2"
                       @click="banUser(scope.row)">解封</el-button>
                     <el-button type="primary" size="mini" @click="Modifyparameter(scope.row)">修改参数</el-button>
                   </template>
@@ -144,7 +144,6 @@
           </div>
         </div>
       </el-col>
-
     </el-row>
     <!-- 下拉菜单 -->
     <div style="position: absolute;right: 40px;top: 20px;">
@@ -169,38 +168,38 @@ export default {
         password: ''
       },
       userList: [
-        {
-          id: 11,
-          name: "user2",
-          pwd: "e10adc3949ba59abbe56e057f20f883e",
-          avatar: "",
-          status: 1,
-          time: 1702652521963,
-          update: 1702652521963,
-          device: "",
-          web_ss: "",
-          ios_ss: "",
-          ad_ss: "",
-          pixel: 23,
-          fps: 4,
-          config: ""
-        },
-        {
-          id: 10,
-          name: "user1",
-          pwd: "e10adc3949ba59abbe56e057f20f883e",
-          avatar: "",
-          status: 1,
-          time: 1702652521963,
-          update: 1702652521963,
-          device: "",
-          web_ss: "a943c8488ntcqlrlegg3b6rdt8",
-          ios_ss: "6rkdmfcc70lkooperf8e3f8gai",
-          ad_ss: "",
-          pixel: 4,
-          fps: 2,
-          config: ""
-        },
+      // {
+      //     id: 11,
+      //     name: "user2",
+      //     pwd: "e10adc3949ba59abbe56e057f20f883e",
+      //     avatar: "",
+      //     status: 1,
+      //     time: 1702652521963,
+      //     update: 1702652521963,
+      //     device: "",
+      //     web_ss: "",
+      //     ios_ss: "",
+      //     ad_ss: "",
+      //     pixel: 23,
+      //     fps: 4,
+      //     config: "{\"width\":\"1024\",\"height\":\"768\",\"output_w\":\"1024\",\"output_h\":\"768\",\"max\":\"0\",\"min\":\"0\",\"cur\":\"0\",\"fps\":\"30\"}"
+      //   },
+      //   {
+      //     id: 10,
+      //     name: "user1",
+      //     pwd: "e10adc3949ba59abbe56e057f20f883e",
+      //     avatar: "",
+      //     status: 1,
+      //     time: 1702652521963,
+      //     update: 1702652521963,
+      //     device: "",
+      //     web_ss: "a943c8488ntcqlrlegg3b6rdt8",
+      //     ios_ss: "6rkdmfcc70lkooperf8e3f8gai",
+      //     ad_ss: "",
+      //     pixel: 4,
+      //     fps: 2,
+      //     config: ""
+      //   },
       ],
       currentPage: 1,
       pageSize: 10,
@@ -222,7 +221,14 @@ export default {
   },
   mounted() {
     // 进入页面先获取数据默认从第一页每一页获取10条开始
-    // this.getuserlist()
+    this.getuserlist()
+  },
+  filters:{
+    getfps(val){
+      console.log(val);
+      const config=val===''?'':JSON.parse(val)
+       return config.fps||''
+    }
   },
   computed: {
     // 计算用户列表信息
@@ -246,8 +252,8 @@ export default {
         const seconds = this.padZero(date.getSeconds());
         return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
       };
+    },
   },
-},
   methods: {
     // 辅助方法，用于在个位数前添加零
     padZero(num) {
@@ -618,5 +624,6 @@ export default {
 .content {
   padding: 20px;
 }
+
 </style>
   
