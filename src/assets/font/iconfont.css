@@ -1,0 +1,107 @@
+@font-face {
+
+  font-family: iconfont;
+  /* 字体名称 */
+
+  src: url(iconfont.ttf) format('truetype');
+  /* 字体文件的URL */
+
+  font-weight: 400;
+  /* 字体粗细 */
+
+  font-display: "auto";
+  /* 字体布局 */
+
+  font-style: normal;
+  /* 字体样式 */
+
+}
+@font-face {
+
+  font-family: iconfont;
+  /* 字体名称 */
+
+  src: url(iconfont2.ttf) format('truetype');
+  /* 字体文件的URL */
+
+  font-weight: 400;
+  /* 字体粗细 */
+
+  font-display: "auto";
+  /* 字体布局 */
+
+  font-style: normal;
+  /* 字体样式 */
+
+}
+@font-face {
+
+  font-family: iconfont;
+  /* 字体名称 */
+
+  src: url(iconfont3.ttf) format('truetype');
+  /* 字体文件的URL */
+
+  font-weight: 400;
+  /* 字体粗细 */
+
+  font-display: "auto";
+  /* 字体布局 */
+
+  font-style: normal;
+  /* 字体样式 */
+
+}
+
+/* 将自定义图标字体应用于具有特定类名的元素 */
+
+[class\*=" icon-"],
+/* 类名包含 "icon-" 的元素 */
+
+[class^="icon-"] {
+  /* 类名以 "icon-" 开头的元素 */
+
+  font-family: iconfont !important;
+  /* 将字体族设置为自定义图标字体 */
+
+  speak: none;
+  /* 屏幕阅读器不朗读内容 */
+
+  font-style: normal;
+  /* 字体样式 */
+
+  font-weight: 600;
+  /* 字体粗细 */
+
+  font-variant: normal;
+  /* 字体变体 */
+
+  text-transform: none;
+  /* 文本转换 */
+
+  line-height: 1;
+  /* 行高 */
+
+  vertical-align: baseline;
+  /* 垂直对齐方式 */
+
+  display: inline-block;
+  /* 行内块级元素显示 */
+
+  -webkit-font-smoothing: antialiased;
+  /* WebKit浏览器的字体平滑处理 */
+
+  -moz-osx-font-smoothing: grayscale;
+  /* macOS的字体平滑处理 */
+
+}
+
+.icon-VIP:before {
+  content: "\e688";
+}
+.icon-vip:before {
+  content: "\e60e";
+}
+.icon-xitongguanliyuan:before {
+  content: "\e69b";
+}

@@ -16,6 +16,11 @@
             <el-option label="640" value="640"></el-option>
             <el-option label="1920" value="1920"></el-option>
             <el-option label="1280" value="1280"></el-option>
+            <el-option label="1600" value="1600"></el-option>
+            <el-option label="1400" value="1400"></el-option>
+            <el-option label="720" value="720"></el-option>
+            <el-option label="700" value="700"></el-option>
+            <el-option label="800" value="800"></el-option>
           </el-select>
         </el-form-item>
         <el-form-item label="采样高度">
@@ -77,14 +82,18 @@
           <div v-show="activeTab === 'userList'">
             <h3>用户列表</h3>
             <template v-if="indexedUserList.length > 0">
-              <el-table :data="indexedUserList" style="width: 100%">
+              <el-table :data="indexedUserList" style="width: 100%" :row-class-name="rowClass">
                 <el-table-column label="id" width="60" header-align="center" align="center">
                   <template slot-scope="scope">
                     <span>{{ scope.row.index }}</span>
                   </template>
                 </el-table-column>
-                <el-table-column prop="name" label="账号" width="160" header-align="center"
-                  align="center"></el-table-column>
+                <el-table-column prop="name" label="账号" width="160" header-align="center" align="center">
+                  <template slot-scope="scope">
+                    <i v-if="scope.row.pixel !== 1" class="icon-vip" style="color: red;"></i>
+                    <span :style="{ color: scope.row.pixel !== 1 ? 'red' : '' }">{{ scope.row.name }}</span>
+                  </template>
+                </el-table-column>
                 <el-table-column prop="pwd" label="密码" width="80" header-align="center" align="center">
                   <template slot-scope="scope">
                     <i class="el-icon-lock"></i>
@@ -118,14 +127,14 @@
                 </el-table-column>
                 <el-table-column label="身份" width="100" header-align="center" align="center">
                   <template slot-scope="scope">
-                    <span :style="{ color: scope.row.pixel === 1 ? '#606266' : '#ff0000' }">{{ scope.row.pixel === 1 ?
-                      '普通用户' : 'VIP用户' }}</span>
+                    <span v-if="scope.row.pixel === 1"> 普通用户</span>
+                    <i v-else class="icon-VIP" style="color: red;">会员</i>
                   </template>
                 </el-table-column>
                 <el-table-column label="操作" header-align="center" align="center">
                   <template slot-scope="scope">
-                    <el-button type="success" size="mini" @click="upgradeUser(scope.row)"
-                      v-show="scope.row.pixel === 1" style="margin-left: 10px;">升级</el-button>
+                    <el-button type="success" size="mini" @click="upgradeUser(scope.row)" v-show="scope.row.pixel === 1"
+                      style="margin-left: 10px;">升级</el-button>
                     <el-button type="success" size="mini" disabled v-show="scope.row.pixel !== 1">升级</el-button>
                     <el-button type="danger" size="mini" v-show="scope.row.status === 1"
                       @click="banUser(scope.row)">冻结</el-button>
@@ -135,9 +144,8 @@
                   </template>
                 </el-table-column>
               </el-table>
-              <el-pagination @current-change="handleCurrentChange" :current-page="currentPage"
-                 :page-size="pageSize" layout="total, prev, pager, next, jumper"
-                :total="total"></el-pagination>
+              <el-pagination @current-change="handleCurrentChange" :current-page="currentPage" :page-size="pageSize"
+                layout="total, prev, pager, next, jumper" :total="total"></el-pagination>
             </template>
             <template v-else>
               <el-empty description="暂无数据"></el-empty>
@@ -149,7 +157,7 @@
     <!-- 下拉菜单 -->
     <div style="position: absolute;right: 40px;top: 20px;">
       <el-dropdown @command="handleCommand">
-        <span class="welcome-text">欢迎,Admin</span>
+        <span class="welcome-text"><i class="icon-xitongguanliyuan"></i>欢迎!Admin</span>
         <el-dropdown-menu slot="dropdown">
           <el-dropdown-item command="a">退出登录</el-dropdown-item>
         </el-dropdown-menu>
@@ -181,7 +189,7 @@ export default {
         //     web_ss: "",
         //     ios_ss: "",
         //     ad_ss: "",
-        //     pixel: 23,
+        //     pixel: 1,
         //     fps: 4,
         //     config: "{\"width\":\"1024\",\"height\":\"768\",\"output_w\":\"1024\",\"output_h\":\"768\",\"max\":\"0\",\"min\":\"0\",\"cur\":\"0\",\"fps\":\"30\"}"
         //   },
@@ -206,15 +214,16 @@ export default {
       pageSize: 10,
       total: 10,
       options: {
-        width: "1024",//采样宽度
-        height: "768",//采样高度
-        output_w: "1024",//推流输出宽度
-        output_h: "768",//推流输出高度
-        max: "0",//最大码率 0为不限制
-        min: "0",//最低码率 0为不限制
-        cur: "0",//当前码率 0为不限制
+        width: "640",//采样宽度
+        height: "480",//采样高度
+        output_w: "640",//推流输出宽度
+        output_h: "480",//推流输出高度
+        max: "1200",//最大码率 0为不限制
+        min: "100",//最低码率 0为不限制
+        cur: "1200",//当前码率 0为不限制
         fps: "30",//帧率
       },
+      Key: 'MNaa59WfNLaoTiLM+aERckO5ksE4-0xw',
       aspectRatio: '4:3',
       dialogVisible: false,
       userid: 1,
@@ -255,6 +264,10 @@ export default {
     },
   },
   methods: {
+    rowClass({row}){
+      console.log('rowclss',row);
+      return row.pixel !== 1 ? 'vip' : 'novip';
+    },
     // 辅助方法，用于在个位数前添加零
     padZero(num) {
       return num < 10 ? `0${num}` : num;
@@ -280,7 +293,7 @@ export default {
           message: '输出宽度必须为偶数且是8的倍数息',
           type: 'warning'
         });
-        this.options.output_w = '1024'
+        this.options.output_w = '640'
       }
     },
     // 监听最大码率
@@ -304,9 +317,9 @@ export default {
     // 监听帧率
     validateFps() {
       const fps = parseInt(this.options.fps, 10);
-      if (isNaN(fps) || fps < 15 || fps > 40) {
+      if (isNaN(fps) || fps < 15 || fps > 60) {
         this.$message({
-          message: '帧率必须在15到40之间',
+          message: '帧率必须在15到60之间',
           type: 'warning'
         });
         // 将输入的值变回原来的值
@@ -316,7 +329,6 @@ export default {
     // 获取用户列表
     getuserlist() {
       console.log('当前页数', this.currentPage, '一页一共', this.pageSize);
-      const Key = 'MNaa59WfNLaoTiLM+aERckO5ksE4-0xw'
       GetClientlist(this.currentPage, this.pageSize)
         .then(response => {
           console.log('获取用户列表后端返回数据', response);
@@ -325,11 +337,11 @@ export default {
             // 显示退出登录成功的提示消息
             this.$message({
               message: '您没有权限',
-              type: 'success'
+              type: 'error'
             });
           } else {
             const decodedURL = decodeURIComponent(response.data.data.result)
-            const decryptedText = GibberishAES.aesDecrypt(decodedURL, Key)
+            const decryptedText = GibberishAES.aesDecrypt(decodedURL, this.Key)
             // 将解密后的数据对象转换为JSON格式
             const jsondata = JSON.parse(decryptedText)
             this.userList = jsondata.list
@@ -372,9 +384,9 @@ export default {
               fps: 2,//没有用
               config: JSON.stringify(this.options)
             };
-            const Key = 'MNaa59WfNLaoTiLM+aERckO5ksE4-0xw'
+
             // 使用AES加密用户信息
-            const AESjiami = GibberishAES.aesEncrypt(JSON.stringify(from), Key);
+            const AESjiami = GibberishAES.aesEncrypt(JSON.stringify(from), this.Key);
             console.log('加密后', AESjiami);
             var AESzy = encodeURIComponent(AESjiami); // 对字符串进行转义
             console.log('转义传给后端的数据是', AESzy);
@@ -453,19 +465,19 @@ export default {
     banUser(row) {
       const status = row.status === 1 ? 2 : 1
       console.log(status);
-      this.$confirm(`确定${row.status === 1 ? '冻结' : '解冻'}？是否继续?`, '提示', {
+      this.$confirm(`确定${row.status === 1 ? '冻结' : '解冻'}用户${row.name}？是否继续?`, '提示', {
         confirmButtonText: '确定',
         cancelButtonText: '取消',
         type: 'warning',
         center: true
       }).then(() => {
-        const Key = 'MNaa59WfNLaoTiLM+aERckO5ksE4-0xw'
+
         const data = {
           id: row.id,
           status: status
         }
         // 使用AES加密用户信息
-        const AESjiami = GibberishAES.aesEncrypt(JSON.stringify(data), Key);
+        const AESjiami = GibberishAES.aesEncrypt(JSON.stringify(data), this.Key);
         var AESzy = encodeURIComponent(AESjiami); // 对字符串进行转义
         console.log('要修改的数据：', data);
         ModifyClient(AESzy)
@@ -498,19 +510,19 @@ export default {
     // 升级用户逻辑
     upgradeUser(row) {
       console.log(row);
-      this.$confirm(`确定升级${row.name}？是否继续?`, '提示', {
+      this.$confirm(`确定升级用户${row.name}？是否继续?`, '提示', {
         confirmButtonText: '确定',
         cancelButtonText: '取消',
         type: 'warning',
         center: true
       }).then(() => {
-        const Key = 'MNaa59WfNLaoTiLM+aERckO5ksE4-0xw'
+
         const data = {
           id: row.id,
-          status: 2
+          pixel: 2
         }
         // 使用AES加密用户信息
-        const AESjiami = GibberishAES.aesEncrypt(JSON.stringify(data), Key);
+        const AESjiami = GibberishAES.aesEncrypt(JSON.stringify(data), this.Key);
         var AESzy = encodeURIComponent(AESjiami); // 对字符串进行转义
         console.log('要修改的数据：', data);
         ModifyClient(AESzy)
@@ -550,13 +562,13 @@ export default {
             this.options = JSON.parse(user.config);
           } else {
             this.options = {
-              width: "1024",//采样宽度
-              height: "768",//采样高度
-              output_w: "1024",//推流输出宽度
-              output_h: "768",//推流输出高度
-              max: "0",//最大码率 0为不限制
-              min: "0",//最低码率 0为不限制
-              cur: "0",//当前码率 0为不限制
+              width: "640",//采样宽度
+              height: "480",//采样高度
+              output_w: "640",//推流输出宽度
+              output_h: "480",//推流输出高度
+              max: "1200",//最大码率 0为不限制
+              min: "100",//最低码率 0为不限制
+              cur: "1200",//当前码率 0为不限制
               fps: "30",//帧率
             }
           }
@@ -579,13 +591,12 @@ export default {
     },
     // 提交修改
     saveChanges() {
-      const Key = 'MNaa59WfNLaoTiLM+aERckO5ksE4-0xw'
       const data = {
         id: this.userid,
         config: this.options
       }
       // 使用AES加密用户信息
-      const AESjiami = GibberishAES.aesEncrypt(JSON.stringify(data), Key);
+      const AESjiami = GibberishAES.aesEncrypt(JSON.stringify(data), this.Key);
       var AESzy = encodeURIComponent(AESjiami); // 对字符串进行转义
       console.log('要修改的数据：', data);
       ModifyClient(AESzy)
@@ -632,6 +643,15 @@ export default {
 
 .content {
   padding: 20px;
+}
+
+</style>
+<style>
+.vip{
+  background-color: #f5f5f5 !important
+}
+.novip{
+  background-color: #ffffff !important
 }
 </style>
   

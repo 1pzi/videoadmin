@@ -10,6 +10,8 @@ import './utlis/request'
 import 'bootstrap/dist/css/bootstrap.min.css'; // 引用bootstrap的样式
 import 'bootstrap/dist/js/bootstrap.min.js';
 import 'bootstrap-icons/font/bootstrap-icons.css';
+import './assets/font/iconfont.css'
+
 // 导入jquery
 Vue.prototype.$ = $; // 引用bootstrap的js
 Vue.use(ElementUI)
