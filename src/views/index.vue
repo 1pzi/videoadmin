@@ -142,12 +142,13 @@
                     <el-button type="success" size="mini" @click="upgradeUser(scope.row)"
                       v-show="scope.row.member_type === 1" style="margin-left: 10px;">升级</el-button>
                     <el-button type="success" size="mini" disabled v-show="scope.row.member_type !== 1">升级</el-button>
+
                     <el-button type="danger" size="mini" v-show="scope.row.status === 1"
                       @click="banUser(scope.row)">冻结</el-button>
                     <el-button type="info" size="mini" v-show="scope.row.status === 2"
                       @click="banUser(scope.row)">解冻</el-button>
                     <el-button type="primary" size="mini" @click="Modifyparameter(scope.row)">修改参数</el-button>
-                    <el-button type="primary" size="mini" @click="resetPassword(scope.row)">重置密码</el-button>
+                    <el-button type="primary" size="mini" @click="resetPasswordconfig(scope.row)">重置密码</el-button>
                   </template>
                 </el-table-column>
               </el-table>
@@ -164,7 +165,8 @@
     <!-- 下拉菜单 -->
     <div style="position: absolute;right: 40px;top: 20px;">
       <el-dropdown @command="handleCommand">
-        <span class="welcome-text"><i class="icon-xitongguanliyuan"></i>欢迎!{{ $store.state.user.username }}</span>
+        <span class="welcome-text"><i class="icon-xitongguanliyuan"></i>欢迎!</span>
+        <span class="welcome-text" style="margin-left:10px;">{{ $store.state.user.username }}</span>
         <el-dropdown-menu slot="dropdown">
           <el-dropdown-item command="a">退出登录</el-dropdown-item>
         </el-dropdown-menu>
@@ -175,9 +177,9 @@
         <!-- <el-form-item label="账号">
           <el-input v-model="form.username" placeholder="请输入账号"></el-input>
         </el-form-item> -->
-      <el-form-item label="密码">
-        <el-input v-model="form.password" placeholder="请输入密码" show-password></el-input>
-      </el-form-item>
+        <el-form-item label="密码">
+          <el-input v-model="resetpwd" placeholder="请输入密码" show-password></el-input>
+        </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
         <el-button @click="resetPassword" type="primary">重置密码</el-button>
@@ -233,6 +235,7 @@ export default {
       ],
       currentPage: 1,
       showForgetPasswordDialog: false,
+      resetpwd: '',//重置密码输入
       ispost: false,
       pageSize: 10,
       total: 10,
@@ -288,29 +291,46 @@ export default {
     },
   },
   methods: {
-    resetPassword(row) {
-      // 重置密码逻辑
-      console.log('重置密码', row.id);
-      const message = JSON.stringify(row.name);
-      const encryptedData = this.aesEncrypt(message, this.aesKey, this.aesIV);
-      const escapedEncryptedString = encodeURIComponent(encryptedData);
-      this.$fetchApi(ResetPwd.url, ResetPwd.method, { param: escapedEncryptedString }, (res) => {
-        if (res.Code == 0) {
-          this.$message({
-            showClose: true,
-            type: 'success',
-            message: '重置成功',
-            center: true
-          });
-        } else {
-          this.$message({
-            showClose: true,
-            message: res.Msg,
-            type: 'error',
-            center: true
-          });
+    // 弹出层重置密码的窗口
+    resetPasswordconfig(row) {
+      this.userid = row.id
+      this.showForgetPasswordDialog = true
+      console.log(this.userid);
+    },
+    resetPassword() {
+      this.$confirm(`即将重置该用户密码，是否继续?`, '提示', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning',
+        center: true
+      }).then(() => {
+        const params = {
+          userid: this.userid,
+          pwd: this.resetpwd
         }
-      });
+        const message = JSON.stringify(params);
+        const encryptedData = this.aesEncrypt(message, this.aesKey, this.aesIV);
+        const escapedEncryptedString = encodeURIComponent(encryptedData);
+        this.$fetchApi(ResetPwd.url, ResetPwd.method, { param: escapedEncryptedString, sfu_cookie: this.$store.state.user.cookie }, (res) => {
+          if (res.Code == 0) {
+            this.$message({
+              showClose: true,
+              type: 'success',
+              message: '重置成功',
+              center: true
+            });
+            this.showForgetPasswordDialog=false
+          } else {
+            this.$message({
+              showClose: true,
+              message: res.Msg,
+              type: 'error',
+              center: true
+            });
+          }
+        });
+        this.resetpwd=''
+      }).catch(() => { });
     },
     rowClass({ row }) {
       // console.log('rowclss', row);
@@ -523,7 +543,6 @@ export default {
         center: true
       }).then(() => {
         const status = row.status === 1 ? 2 : 1
-        console.log(status);
         const data = {
           id: row.id,
           status: status
