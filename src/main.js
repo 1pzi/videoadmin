@@ -15,7 +15,8 @@ import './assets/font/iconfont.css'
 // 导入jquery
 Vue.prototype.$ = $; // 引用bootstrap的js
 Vue.use(ElementUI)
-
+import network from './utlis/fetch';
+Vue.use(network)
 Vue.config.productionTip = false;
 
 new Vue({

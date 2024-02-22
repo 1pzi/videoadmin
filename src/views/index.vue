@@ -42,7 +42,7 @@
           <el-input v-model="options.cur" placeholder="请选择当前码率0为不限制" @change="handleCurChange"></el-input>
         </el-form-item>
         <el-form-item label="帧率">
-          <el-input v-model="options.fps" @change="validateFps" placeholder="帧率输入在15到40之间"></el-input>
+          <el-input v-model="options.fps" @change="validateFps" placeholder="请输入帧数"></el-input>
         </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
@@ -81,6 +81,12 @@
           </div>
           <div v-show="activeTab === 'userList'">
             <h3>用户列表</h3>
+            <div style="display: flex; justify-content: center;">
+              <el-input v-model="searchAccount" placeholder="请输入用户账号进行搜索" @change="getuserlist"
+                class="custom-input"></el-input>
+              <el-button type="primary" @click="getuserlist"
+                style="width: 80px;border-radius: 0px 4px 4px 0;background-color: #0099ff;">搜索</el-button>
+            </div>
             <template v-if="indexedUserList.length > 0">
               <el-table :data="indexedUserList" style="width: 100%" :row-class-name="rowClass">
                 <el-table-column label="id" width="60" header-align="center" align="center">
@@ -90,8 +96,8 @@
                 </el-table-column>
                 <el-table-column prop="name" label="账号" width="160" header-align="center" align="center">
                   <template slot-scope="scope">
-                    <i v-if="scope.row.pixel !== 1" class="icon-vip" style="color: red;"></i>
-                    <span :style="{ color: scope.row.pixel !== 1 ? 'red' : '' }">{{ scope.row.name }}</span>
+                    <i v-if="scope.row.member_type !== 1" class="icon-vip" style="color: red;"></i>
+                    <span :style="{ color: scope.row.member_type !== 1 ? 'red' : '' }">{{ scope.row.name }}</span>
                   </template>
                 </el-table-column>
                 <el-table-column prop="pwd" label="密码" width="80" header-align="center" align="center">
@@ -105,12 +111,12 @@
                       '正常' : '冻结' }}</span>
                   </template>
                 </el-table-column>
-                <el-table-column prop="time" label="添加时间" width="200" header-align="center" align="center">
+                <el-table-column prop="time" label="添加时间" width="170" header-align="center" align="center">
                   <template slot-scope="scope">
                     {{ formatTimestamp(scope.row.time) }}
                   </template>
                 </el-table-column>
-                <el-table-column prop="update" label="修改时间" width="200" header-align="center" align="center">
+                <el-table-column prop="update" label="修改时间" width="170" header-align="center" align="center">
                   <template slot-scope="scope">
                     {{ formatTimestamp(scope.row.update) }}
                   </template>
@@ -125,22 +131,23 @@
                     </template>
                   </template>
                 </el-table-column>
-                <el-table-column label="身份" width="100" header-align="center" align="center">
+                <el-table-column label="身份" width="80" header-align="center" align="center">
                   <template slot-scope="scope">
-                    <span v-if="scope.row.pixel === 1"> 普通用户</span>
+                    <span v-if="scope.row.member_type === 1"> 普通用户</span>
                     <i v-else class="icon-VIP" style="color: red;">会员</i>
                   </template>
                 </el-table-column>
                 <el-table-column label="操作" header-align="center" align="center">
                   <template slot-scope="scope">
-                    <el-button type="success" size="mini" @click="upgradeUser(scope.row)" v-show="scope.row.pixel === 1"
-                      style="margin-left: 10px;">升级</el-button>
-                    <el-button type="success" size="mini" disabled v-show="scope.row.pixel !== 1">升级</el-button>
+                    <el-button type="success" size="mini" @click="upgradeUser(scope.row)"
+                      v-show="scope.row.member_type === 1" style="margin-left: 10px;">升级</el-button>
+                    <el-button type="success" size="mini" disabled v-show="scope.row.member_type !== 1">升级</el-button>
                     <el-button type="danger" size="mini" v-show="scope.row.status === 1"
                       @click="banUser(scope.row)">冻结</el-button>
                     <el-button type="info" size="mini" v-show="scope.row.status === 2"
                       @click="banUser(scope.row)">解冻</el-button>
                     <el-button type="primary" size="mini" @click="Modifyparameter(scope.row)">修改参数</el-button>
+                    <el-button type="primary" size="mini" @click="resetPassword(scope.row)">重置密码</el-button>
                   </template>
                 </el-table-column>
               </el-table>
@@ -157,17 +164,31 @@
     <!-- 下拉菜单 -->
     <div style="position: absolute;right: 40px;top: 20px;">
       <el-dropdown @command="handleCommand">
-        <span class="welcome-text"><i class="icon-xitongguanliyuan"></i>欢迎!Admin</span>
+        <span class="welcome-text"><i class="icon-xitongguanliyuan"></i>欢迎!{{ $store.state.user.username }}</span>
         <el-dropdown-menu slot="dropdown">
           <el-dropdown-item command="a">退出登录</el-dropdown-item>
         </el-dropdown-menu>
       </el-dropdown>
     </div>
+    <el-dialog title="忘记密码" :visible.sync="showForgetPasswordDialog">
+      <el-form :model="form" label-width="80px">
+        <!-- <el-form-item label="账号">
+          <el-input v-model="form.username" placeholder="请输入账号"></el-input>
+        </el-form-item> -->
+      <el-form-item label="密码">
+        <el-input v-model="form.password" placeholder="请输入密码" show-password></el-input>
+      </el-form-item>
+      </el-form>
+      <div slot="footer" class="dialog-footer">
+        <el-button @click="resetPassword" type="primary">重置密码</el-button>
+        <el-button @click="showForgetPasswordDialog = false">取消</el-button>
+      </div>
+    </el-dialog>
   </div>
 </template>
   
 <script>
-import { GetClientlist, AddClient, ModifyClient } from '@/api/index'
+import { GetClientlist, AddClient, ModifyClient, ResetPwd } from '@/api/index'
 export default {
   data() {
     return {
@@ -211,8 +232,11 @@ export default {
         //   },
       ],
       currentPage: 1,
+      showForgetPasswordDialog: false,
+      ispost: false,
       pageSize: 10,
       total: 10,
+      searchAccount: '',//用户输入的账号
       options: {
         width: "640",//采样宽度
         height: "480",//采样高度
@@ -264,9 +288,33 @@ export default {
     },
   },
   methods: {
-    rowClass({row}){
-      console.log('rowclss',row);
-      return row.pixel !== 1 ? 'vip' : 'novip';
+    resetPassword(row) {
+      // 重置密码逻辑
+      console.log('重置密码', row.id);
+      const message = JSON.stringify(row.name);
+      const encryptedData = this.aesEncrypt(message, this.aesKey, this.aesIV);
+      const escapedEncryptedString = encodeURIComponent(encryptedData);
+      this.$fetchApi(ResetPwd.url, ResetPwd.method, { param: escapedEncryptedString }, (res) => {
+        if (res.Code == 0) {
+          this.$message({
+            showClose: true,
+            type: 'success',
+            message: '重置成功',
+            center: true
+          });
+        } else {
+          this.$message({
+            showClose: true,
+            message: res.Msg,
+            type: 'error',
+            center: true
+          });
+        }
+      });
+    },
+    rowClass({ row }) {
+      // console.log('rowclss', row);
+      return row.member_type !== 1 ? 'vip' : 'novip';
     },
     // 辅助方法，用于在个位数前添加零
     padZero(num) {
@@ -317,9 +365,10 @@ export default {
     // 监听帧率
     validateFps() {
       const fps = parseInt(this.options.fps, 10);
-      if (isNaN(fps) || fps < 15 || fps > 60) {
+      console.log(fps);
+      if (isNaN(fps) || fps <= 15) {
         this.$message({
-          message: '帧率必须在15到60之间',
+          message: '帧率必须大于等于15',
           type: 'warning'
         });
         // 将输入的值变回原来的值
@@ -329,33 +378,33 @@ export default {
     // 获取用户列表
     getuserlist() {
       console.log('当前页数', this.currentPage, '一页一共', this.pageSize);
-      GetClientlist(this.currentPage, this.pageSize)
-        .then(response => {
-          console.log('获取用户列表后端返回数据', response);
-          if (response.data.status === 1114) {
-            this.$store.commit('logout')
-            // 显示退出登录成功的提示消息
-            this.$message({
-              message: '您没有权限',
-              type: 'error'
-            });
-          } else {
-            const decodedURL = decodeURIComponent(response.data.data.result)
-            const decryptedText = GibberishAES.aesDecrypt(decodedURL, this.Key)
+      const list = this.searchAccount === '' ?
+        { page: this.currentPage, size: this.pageSize } :
+        { page: this.currentPage, size: this.pageSize, name: this.searchAccount };
+      console.log(list);
+      const message = JSON.stringify(list);
+      const encryptedData = this.aesEncrypt(message, this.aesKey, this.aesIV);
+      const escapedEncryptedString = encodeURIComponent(encryptedData);
+      var t = this;
+      try {
+        this.$fetchApi(GetClientlist.url, GetClientlist.method, { param: escapedEncryptedString, sfu_cookie: this.$store.state.user.cookie }, (res) => {
+          console.log(res);
+          if (res.Code === 0) {
+            const decodedURL = decodeURIComponent(res.Data.result)
+            console.log(decodedURL);
+            const decryptedText = t.aesDecrypt(decodedURL, t.aesKey, t.aesIV)
+            console.log(decryptedText);
             // 将解密后的数据对象转换为JSON格式
-            const jsondata = JSON.parse(decryptedText)
-            this.userList = jsondata.list
-            this.total = jsondata.count
-            // console.log('jsondata.list.config', jsondata.list.config);
-            // this.options = jsondata.list.config === '' ? this.options : JSON.parse(jsondata.list.config)
-            // console.log('options:', this.options);
+            const clientlist = JSON.parse(decryptedText);
+            console.log('clientlist:', clientlist);
+            this.userList = clientlist.list
             console.log('拉取所有用户的信息：', this.userList)
-            console.log('jsondata:', jsondata);
-          }
-        })
-        .catch(error => {
-          console.error('错误:', error);
-          if (error.status === 1113) {
+            this.total = clientlist.count
+            this.options = clientlist.list.config === '' ? this.options : JSON.parse(clientlist.list.config)
+            console.log('options:', this.options);
+            this.currentPage = clientlist.page
+            this.pageSize = clientlist.size
+          } else {
             this.$message({
               showClose: true,
               message: '登录账号失效，请重新登录',
@@ -365,7 +414,11 @@ export default {
             localStorage.clear(); // 清除本地缓存
             location.reload(); // 刷新页面
           }
-        });
+
+        })
+      } catch (error) {
+        console.log(error);
+      }
     },
     // 添加用户的逻辑
     addUser() {
@@ -463,46 +516,40 @@ export default {
     },
     // 封号和解封逻辑
     banUser(row) {
-      const status = row.status === 1 ? 2 : 1
-      console.log(status);
       this.$confirm(`确定${row.status === 1 ? '冻结' : '解冻'}用户${row.name}？是否继续?`, '提示', {
         confirmButtonText: '确定',
         cancelButtonText: '取消',
         type: 'warning',
         center: true
       }).then(() => {
-
+        const status = row.status === 1 ? 2 : 1
+        console.log(status);
         const data = {
           id: row.id,
           status: status
         }
-        // 使用AES加密用户信息
-        const AESjiami = GibberishAES.aesEncrypt(JSON.stringify(data), this.Key);
-        var AESzy = encodeURIComponent(AESjiami); // 对字符串进行转义
-        console.log('要修改的数据：', data);
-        ModifyClient(AESzy)
-          .then(res => {
-            console.log('修改成功返回的数据', res.data);
-            if (res.data.status === 0) {
-              this.$message({
-                type: 'success',
-                center: true,
-                message: `${row.status === 1 ? '冻结' : '解冻'}成功`
-              });
-              this.getuserlist()
+        const message = JSON.stringify(data);
+        const encryptedData = this.aesEncrypt(message, this.aesKey, this.aesIV);
+        const escapedEncryptedString = encodeURIComponent(encryptedData);
+        this.$fetchApi(ModifyClient.url, ModifyClient.method, { param: escapedEncryptedString, sfu_cookie: this.$store.state.user.cookie }, (res) => {
+          console.log('修改成功返回的数据', res);
+          if (res.Code === 0) {
+            this.$message({
+              type: 'success',
+              center: true,
+              message: `${row.status === 1 ? '冻结' : '解冻'}成功`
+            });
+            this.getuserlist()
+          } else {
+            this.$message({
+              showClose: true,
+              message: res.Msg,
+              type: 'error',
+              center: true
+            });
+          }
 
-            } else {
-              this.$message({
-                showClose: true,
-                message: res.data.message,
-                type: 'error',
-                center: true
-              });
-            }
-          })
-          .catch(error => {
-            console.error('错误:', error);
-          });
+        })
       })
         .catch(() => { });
 
@@ -519,35 +566,31 @@ export default {
 
         const data = {
           id: row.id,
-          pixel: 2
+          member_type: 2
         }
-        // 使用AES加密用户信息
-        const AESjiami = GibberishAES.aesEncrypt(JSON.stringify(data), this.Key);
-        var AESzy = encodeURIComponent(AESjiami); // 对字符串进行转义
-        console.log('要修改的数据：', data);
-        ModifyClient(AESzy)
-          .then(res => {
-            console.log('修改成功返回的数据', res.data);
-            if (res.data.status === 0) {
-              this.$message({
-                type: 'success',
-                center: true,
-                message: `${row.name}身份升级成功`
-              });
-              this.getuserlist()
+        console.log(data);
+        const message = JSON.stringify(data);
+        const encryptedData = this.aesEncrypt(message, this.aesKey, this.aesIV);
+        const escapedEncryptedString = encodeURIComponent(encryptedData);
+        this.$fetchApi(ModifyClient.url, ModifyClient.method, { param: escapedEncryptedString, sfu_cookie: this.$store.state.user.cookie }, (res) => {
+          console.log('修改成功返回的数据', res);
+          if (res.Code === 0) {
+            this.$message({
+              type: 'success',
+              center: true,
+              message: `${row.name}身份升级成功`
+            });
+            this.getuserlist()
 
-            } else {
-              this.$message({
-                showClose: true,
-                message: res.data.message,
-                type: 'error',
-                center: true
-              });
-            }
-          })
-          .catch(error => {
-            console.error('错误:', error);
-          });
+          } else {
+            this.$message({
+              showClose: true,
+              message: res.Msg,
+              type: 'error',
+              center: true
+            });
+          }
+        })
       })
         .catch(() => { });
     },
@@ -572,13 +615,7 @@ export default {
               fps: "30",//帧率
             }
           }
-          // // 使用 typeof 来判断 parsedConfig 是否为对象
-          // if (typeof this.options === 'object' && this.options !== null) {
-          //   this.options = JSON.parse(user.config);
-          //   console.log('是一个对象');
-          // } else {
 
-          // }
           break; // 找到匹配的配置后退出循环
         }
       }
@@ -595,33 +632,28 @@ export default {
         id: this.userid,
         config: this.options
       }
-      // 使用AES加密用户信息
-      const AESjiami = GibberishAES.aesEncrypt(JSON.stringify(data), this.Key);
-      var AESzy = encodeURIComponent(AESjiami); // 对字符串进行转义
-      console.log('要修改的数据：', data);
-      ModifyClient(AESzy)
-        .then(res => {
-          console.log('修改成功返回的数据', res.data);
-          if (res.data.status === 0) {
-            this.$message({
-              type: 'success',
-              center: true,
-              message: '修改参数成功!'
-            });
-            this.dialogVisible = false;
-            this.getuserlist()
-          } else {
-            this.$message({
-              showClose: true,
-              message: res.data.message,
-              type: 'error',
-              center: true
-            });
-          }
-        })
-        .catch(error => {
-          console.error('错误:', error);
-        });
+      console.log(data);
+      const message = JSON.stringify(data);
+      const encryptedData = this.aesEncrypt(message, this.aesKey, this.aesIV);
+      const escapedEncryptedString = encodeURIComponent(encryptedData);
+      this.$fetchApi(ModifyClient.url, ModifyClient.method, { param: escapedEncryptedString, sfu_cookie: this.$store.state.user.cookie }, (res) => {
+        if (res.Code === 0) {
+          this.$message({
+            type: 'success',
+            center: true,
+            message: '修改参数成功!'
+          });
+          this.dialogVisible = false;
+          this.getuserlist()
+        } else {
+          this.$message({
+            showClose: true,
+            message: res.Msg,
+            type: 'error',
+            center: true
+          });
+        }
+      })
     },
 
   }
@@ -644,14 +676,22 @@ export default {
 .content {
   padding: 20px;
 }
-
 </style>
 <style>
-.vip{
+.vip {
   background-color: #f5f5f5 !important
 }
-.novip{
+
+.novip {
   background-color: #ffffff !important
+}
+
+.custom-input {
+  width: 40% !important
+}
+
+.custom-input input {
+  border-radius: 4px 0 0 4px;
 }
 </style>
   

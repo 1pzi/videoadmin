@@ -11,15 +11,36 @@
         <div class="input-container">
           <input type="password" name="password" v-model="form.password" @focus="onInputFocus('password')"
             @blur="onInputBlur('password')" ref="passwordInput">
+          <span class="yanjin" @click="togglePasswordVisibility" v-show="passwordActive">
+            <i :class="{ 'bi bi-eye-fill': !passwordVisible, 'bi bi-eye-slash-fill': passwordVisible }"></i>
+          </span>
           <label class="input-label" :class="{ 'active': passwordActive }">密码</label>
         </div>
+        <p class="pi" v-show="msg !== ''">{{ msg }}</p>
         <el-button class="btn1" @click="login" type="primary" :loading="loading">登录</el-button>
+        <!-- <el-button class="btn1" @click="showForgetPasswordDialog = true" type="text">忘记密码</el-button> -->
       </div>
     </div>
+    <!-- 忘记密码弹出层 -->
+    <el-dialog title="忘记密码" :visible.sync="showForgetPasswordDialog">
+      <el-form :model="form" label-width="80px">
+        <el-form-item label="账号">
+          <el-input v-model="form.username" placeholder="请输入账号"></el-input>
+        </el-form-item>
+        <el-form-item label="密码">
+          <el-input v-model="form.password" placeholder="请输入密码" show-password></el-input>
+        </el-form-item>
+      </el-form>
+      <div slot="footer" class="dialog-footer">
+        <el-button @click="resetPassword" type="primary">重置密码</el-button>
+        <el-button @click="showForgetPasswordDialog = false">取消</el-button>
+      </div>
+    </el-dialog>
   </div>
 </template>
   
 <script>
+import { Login, ResetPwd } from '@/api';
 export default {
   data() {
     return {
@@ -29,19 +50,78 @@ export default {
       },
       usernameActive: false,
       passwordActive: false,
-      loading: false
+      loading: false,
+      msg: '',
+      showForgetPasswordDialog: false,
+      passwordVisible: false // 控制密码是否可见的状态
     };
   },
   methods: {
+    togglePasswordVisibility() {
+      this.passwordVisible = !this.passwordVisible; // 切换密码可见状态
+      if (!this.passwordVisible) {
+        this.$refs.passwordInput.type = 'password'
+      } else {
+        this.$refs.passwordInput.type = 'text'
+      }
+    },
+    // resetPassword() {
+    //   // 重置密码逻辑
+    //   console.log('重置密码');
+    //   const message = JSON.stringify(this.form.username);
+    //   const encryptedData = this.aesEncrypt(message, this.aesKey, this.aesIV);
+    //   const escapedEncryptedString = encodeURIComponent(encryptedData);
+    //   this.$fetchApi(ResetPwd.url, ResetPwd.method, { param: escapedEncryptedString }, (res) => {
+    //     if (res.Code == 0) {
+    //       this.$message({
+    //         showClose: true,
+    //         type: 'success',
+    //         message: '重置成功',
+    //         center: true
+    //       });
+    //       this.showForgetPasswordDialog = false; // 关闭忘记密码弹出层
+    //     } else {
+    //       this.$message({
+    //         showClose: true,
+    //         message: res.Msg,
+    //         type: 'error',
+    //         center: true
+    //       });
+    //     }
+    //   });
+    // },
     login() {
       const username = this.form.username;
       const password = this.form.password;
       this.loading = true; // 显示Loading组件
       if (username !== '' && password !== '') {
-        this.$store.dispatch('login', { username, password }).then((success) => {
-          this.loading = false; // 隐藏Loading组件
-          console.log('数据为', success);
-          if (success.state === 0) {
+        const userinfo = {
+          name: username,
+          pwd: password,
+          client: 1
+        };
+        const message = JSON.stringify(userinfo);
+        const encryptedData = this.aesEncrypt(message, this.aesKey, this.aesIV);
+        const escapedEncryptedString = encodeURIComponent(encryptedData);
+        var t = this;
+        this.$fetchApi(Login.url, Login.method, { param: escapedEncryptedString }, (res) => {
+          if (res.Code == 0) {
+            this.loading = false
+            this.msg = ''
+            console.log('登录成功', t === this);
+            const decodedURL = decodeURIComponent(res.Data.result)
+            console.log(decodedURL);
+            const decryptedText = t.aesDecrypt(decodedURL, t.aesKey, t.aesIV)
+            console.log(decryptedText);
+            // 将解密后的数据对象转换为JSON格式
+            const jsonData = JSON.parse(decryptedText);
+            console.log('登录成功数据jsonData', jsonData)
+            const user = {
+              username: jsonData.name,
+              result: jsonData,
+              cookie: res.Data.result
+            };
+            this.$store.commit('setUser', user);
             this.$message({
               showClose: true,
               type: 'success',
@@ -50,21 +130,23 @@ export default {
             });
             this.$router.push('/'); // 登录成功后跳转到指定页面
           } else {
-            // 处理登录失败的情况，例如显示错误消息
-            this.$message({
-              showClose: true,
-              message: success.msg,
-              type: 'error',
-              center: true
-            });
+            // this.$message({
+            //   showClose: true,
+            //   message: res.Msg,
+            //   type: 'error',
+            //   center: true
+            // });
+            this.msg = res.Msg
+            this.loading = false
           }
         });
       } else {
-        this.$message({
-          message: '账号或密码不能为空',
-          type: 'warning',
-          center: true
-        });
+        // this.$message({
+        //   message: '账号或密码不能为空',
+        //   type: 'warning',
+        //   center: true
+        // });
+        this.msg = '账号或密码不能为空'
         this.loading = false
       }
     },
@@ -173,6 +255,20 @@ a {
   top: -15px;
   font-size: 12px;
   color: #aaa;
+}
+
+.yanjin {
+  opacity: 0.7;
+  position: absolute;
+  right: 0;
+  top: 24%;
+}
+
+.pi {
+  position: absolute;
+  left: 35%;
+  margin-top: 10px;
+  color: red;
 }
 </style>
   
