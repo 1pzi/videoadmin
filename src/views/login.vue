@@ -11,8 +11,9 @@
         <div class="input-container">
           <input type="password" name="password" v-model="form.password" @focus="onInputFocus('password')"
             @blur="onInputBlur('password')" ref="passwordInput">
-          <span class="yanjin" @click="togglePasswordVisibility" v-show="passwordActive">
-            <i :class="{ 'bi bi-eye-fill': !passwordVisible, 'bi bi-eye-slash-fill': passwordVisible }"></i>
+            <span class="yanjin" @click="togglePasswordVisibility" v-show="passwordActive">
+            <i v-if="!passwordVisible" class="bi bi-eye-fill"></i>
+            <i v-else class="bi bi-eye-slash-fill"></i>
           </span>
           <label class="input-label" :class="{ 'active': passwordActive }">密码</label>
         </div>
@@ -22,7 +23,7 @@
       </div>
     </div>
     <!-- 忘记密码弹出层 -->
-    <el-dialog title="忘记密码" :visible.sync="showForgetPasswordDialog">
+    <!-- <el-dialog title="忘记密码" :visible.sync="showForgetPasswordDialog">
       <el-form :model="form" label-width="80px">
         <el-form-item label="账号">
           <el-input v-model="form.username" placeholder="请输入账号"></el-input>
@@ -35,12 +36,12 @@
         <el-button @click="resetPassword" type="primary">重置密码</el-button>
         <el-button @click="showForgetPasswordDialog = false">取消</el-button>
       </div>
-    </el-dialog>
+    </el-dialog> -->
   </div>
 </template>
   
 <script>
-import { Login, ResetPwd } from '@/api';
+import { Login } from '@/api';
 export default {
   data() {
     return {
@@ -53,13 +54,13 @@ export default {
       loading: false,
       msg: '',
       showForgetPasswordDialog: false,
-      passwordVisible: false // 控制密码是否可见的状态
+      passwordVisible: true // 控制密码是否可见的状态
     };
   },
   methods: {
     togglePasswordVisibility() {
       this.passwordVisible = !this.passwordVisible; // 切换密码可见状态
-      if (!this.passwordVisible) {
+      if (this.passwordVisible) {
         this.$refs.passwordInput.type = 'password'
       } else {
         this.$refs.passwordInput.type = 'text'
